@@ -48,15 +48,23 @@ parseCard {n = n} {xs = xs} s prev = do
 getCards : (n: Nat) -> (k : Nat) -> SimpleEff.Eff (xs : Vect k (Fin n) ** AllUnique xs) [STDIO]
 getCards n Z = pure (Nil ** UniqueNil)
 getCards n (S l) = do
-  (xs ** prf) <- getCards n l
-  putStrLn "\nEnter a number."
-  s <- getStr
-  case parseCard s prf of
-    Left errorMsg => do
-      putStrLn errorMsg
-      getCards n (S l)
-    Right newCards => pure newCards
+    v <- getCards n l
+    loop v
+  where
+    loop : (xs : Vect k (Fin n) ** AllUnique xs) -> SimpleEff.Eff (ys : Vect (S k) (Fin n) ** AllUnique ys) [STDIO]
+    loop (_ ** prf) = do
+      putStrLn "\nEnter a number."
+      s <- getStr
+      case parseCard s prf of
+        Left errorMsg => do
+          putStrLn errorMsg
+          loop (_ ** prf)
+        Right newCards => pure newCards
       
+-- main : IO ()
+-- main = run $ do
+--   (cards ** _) <- getCards 10 3
+--   putStrLn $ 
 
 -- Local Variables:
 -- idris-load-packages: ("effects" "base")
